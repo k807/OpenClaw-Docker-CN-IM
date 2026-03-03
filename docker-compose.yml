@@ -65,6 +65,8 @@ services:
       OPENCLAW_GATEWAY_AUTH_MODE: ${OPENCLAW_GATEWAY_AUTH_MODE}
       # 插件控制
       OPENCLAW_PLUGINS_ENABLED: ${OPENCLAW_PLUGINS_ENABLED}
+      # AONE_PRIVATE_TOKEN
+      AONE_PRIVATE_TOKEN: ${AONE_PRIVATE_TOKEN}
     volumes:
       - ${OPENCLAW_DATA_DIR}:/home/node/.openclaw
       # 使用匿名卷排除 extensions 目录，使用镜像中预装的插件

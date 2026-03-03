@@ -1,6 +1,10 @@
 # OpenClaw Docker 镜像
 FROM node:22-slim
 
+# 使用阿里云镜像源替换官方Debian源
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list 2>/dev/null || true
+
 # 设置工作目录
 WORKDIR /app
 
@@ -30,6 +34,8 @@ RUN apt-get update && \
     # 更新 npm 并安装全局包
     npm install -g npm@latest && \
     npm install -g openclaw@2026.3.1 opencode-ai@latest playwright playwright-extra puppeteer-extra-plugin-stealth @steipete/bird && \
+    npm install -g clawhub && \
+    npm install -g mcporter && \
     # 安装 bun 和 qmd
     curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash && \
     /usr/local/bin/bun install -g @tobilu/qmd && \
@@ -69,6 +75,13 @@ RUN cd /home/node/.openclaw/extensions && \
   
 # 3. 最终配置
 USER root
+
+# 复制Skills
+COPY ./skills/ /home/node/skills/
+
+# 复制所有脚本
+COPY ./scripts/*.sh /home/node/scripts/
+RUN find /home/node/scripts/ -name "*.sh" -type f -exec chmod +x {} \;
 
 # 复制初始化脚本
 COPY ./init.sh /usr/local/bin/init.sh

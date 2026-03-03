@@ -312,6 +312,57 @@ sync()
 
 sync_config_with_env
 
+# 执行 scripts 目录下的所有 sh 文件
+execute_scripts() {
+    local scripts_dir="/home/node/scripts"
+    
+    if [ ! -d "$scripts_dir" ]; then
+        echo "⚠️  scripts 目录不存在，跳过脚本执行"
+        return 0
+    fi
+    
+    echo "=== 开始执行 scripts 目录下的脚本 ==="
+    
+    # 查找所有 .sh 文件并按名称排序
+    local script_files=$(find "$scripts_dir" -name "*.sh" -type f | sort)
+    
+    if [ -z "$script_files" ]; then
+        echo "📁 scripts 目录下没有找到 .sh 文件"
+        return 0
+    fi
+    
+    # 循环执行每个脚本
+    for script_file in $script_files; do
+        if [ -f "$script_file" ] && [ -r "$script_file" ]; then
+            echo "🚀 执行脚本: $script_file"
+            
+            # 检查脚本是否有执行权限，如果没有则添加
+            if [ ! -x "$script_file" ]; then
+                echo "   添加执行权限..."
+                chmod +x "$script_file"
+            fi
+            
+            # 执行脚本（继承当前环境变量，输出到当前屏幕）
+            echo "   开始执行..."
+            if env bash "$script_file" 2>&1; then
+                echo "✅ 脚本执行成功: $script_file"
+            else
+                local exit_code=$?
+                echo "❌ 脚本执行失败: $script_file (退出码: $exit_code)"
+                # 可以选择是否继续执行其他脚本，这里选择继续
+                echo "   继续执行其他脚本..."
+            fi
+            echo ""
+        else
+            echo "⚠️  跳过不可读的文件: $script_file"
+        fi
+    done
+    
+    echo "=== scripts 目录脚本执行完成 ==="
+}
+
+execute_scripts
+
 # 确保所有文件和目录的权限正确（仅 root 可执行）
 if [ "$(id -u)" -eq 0 ]; then
     chown -R node:node "$OPENCLAW_HOME" || true
